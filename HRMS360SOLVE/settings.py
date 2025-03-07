@@ -30,6 +30,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOWED_ORIGINS = [
+    "https://192.168.0.163",
+    "https://192.168.0.40",
+    "https://192.168.0.43",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://192.168.0.163",
+    "https://192.168.0.40",
+    "https://192.168.0.43",
+]
+
+
+X_FRAME_OPTIONS = "SAMEORIGIN"  # Allows only same-origin iframes
 
 # Application definition
 
@@ -44,6 +58,7 @@ INSTALLED_APPS = [
     'AdminApp',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    "corsheaders"
 ]
 
 REST_FRAMEWORK = {
@@ -75,6 +90,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.BrokenLinkEmailsMiddleware",
+    "django.middleware.http.ConditionalGetMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    
 ]
 
 ROOT_URLCONF = 'HRMS360SOLVE.urls'
@@ -117,6 +138,15 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
     }
 }
+
+
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_SSL_REDIRECT = True  # Redirect HTTP to HTTPS
+SECURE_HSTS_SECONDS = 31536000  # Enable HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SESSION_COOKIE_SECURE = True  # Prevents session hijacking
+CSRF_COOKIE_SECURE = True
 
 
 
