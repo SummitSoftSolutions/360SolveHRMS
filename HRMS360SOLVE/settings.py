@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     'AdminApp',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-    "corsheaders"
+    'corsheaders',
+    'drf_yasg',
 ]
 
 REST_FRAMEWORK = {
