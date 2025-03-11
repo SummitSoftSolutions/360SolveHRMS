@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'HRMSapp',
     'AdminApp',
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
 ]
