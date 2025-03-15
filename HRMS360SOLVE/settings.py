@@ -93,6 +93,39 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
         
     ),
+}
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME':timedelta(minutes=5),
+#     'REFRESH_TOKEN_LIFETIME':timedelta(days=1),
+#     'ROTATE_REFRESH_TOKENS':True,
+#     'BLACKLIST_AFTER_ROTATION':True,
+#     'SIGNING KEY':SECRET_KEY,
+#     'ALGORITHM':'HS256',
+    
+    
+# }
+
+
+# Django project settings.py
+
+from datetime import timedelta
+...
+
+
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Set access token expiry
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Set refresh token expiry
+# }
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
