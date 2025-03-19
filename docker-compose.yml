@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: hrms_app
-    command: gunicorn --bind 0.0.0.0:8000 360SolveERP.wsgi:application
+    command: gunicorn --bind 0.0.0.0:8000 360SolveHRMS.wsgi:application
     volumes:
       - .:/app
       - static_volume:/app/static  # Collect static files to serve via Nginx

@@ -163,7 +163,7 @@ MIDDLEWARE = [
     
 ]
 
-ROOT_URLCONF = '360SolveERP.urls'
+ROOT_URLCONF = '360SolveHRMS.urls'
 
 TEMPLATES = [
     {
@@ -181,7 +181,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = '360SolveERP.wsgi.application'
+WSGI_APPLICATION = '360SolveHRMS.wsgi.application'
 
 
 # Database
