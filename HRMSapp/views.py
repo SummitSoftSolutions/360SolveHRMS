@@ -13,30 +13,51 @@ from rest_framework_simplejwt.tokens import RefreshToken
 # Create your views here.
 class SuperAdminViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
+
     def create(self, request):
-        print("Received OTP verification request!")  
         email = request.data.get("email")
         password = request.data.get("password")
+        
         try:
-            user = SuperAdmin.objects.get(email=email,Password=password)
-            print(f"User found: {user.email}")  
-
+            # Retrieve user
+            user = SuperAdmin.objects.get(email=email, Password=password)
+            
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
- 
-            print(f"Tokens generated: access={access_token}, refresh={refresh_token}")  
- 
-            return Response({
+            
+            
+            # Creating response and setting the cookie
+            response = Response({
                 "status": "success",
                 "message": "OTP verified successfully!",
                 "access_token": access_token,
-                "refresh_token": refresh_token
             }, status=status.HTTP_200_OK)
- 
-        except SuperAdmin.DoesNotExist:
-            print("User not found!")  
-            return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+            # Setting the refresh token cookie
+            response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite='None')
+            
+
+            return response
+        except SuperAdmin.DoesNotExist:
+            return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+
+class RefreshTokenView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self, request):
+        refresh_token = request.COOKIES.get('refresh_token')  # Get from cookie
+        if not refresh_token:
+            return Response({"status": "error", "message": "No refresh token provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+            return Response({"access_token": access_token}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status": "error", "message": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        
 
