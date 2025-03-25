@@ -9,6 +9,7 @@ from  drf_yasg import openapi
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from .kafka_producer import send_hrm_event
 
 # Create your views here.
 class SuperAdminViewSet(viewsets.ViewSet):
@@ -37,8 +38,7 @@ class SuperAdminViewSet(viewsets.ViewSet):
         email = request.data.get("email")
         password = request.data.get("password")
         try:
-            user = SuperAdmin.objects.get(email=email,Password=password)
-            print(f"User found: {user.email}")  
+            user = SuperAdmin.objects.get(email=email,password=password)
  
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
@@ -51,7 +51,7 @@ class SuperAdminViewSet(viewsets.ViewSet):
                 "message": "Logged in successfully!",
                 "access_token": access_token,
             }, status=status.HTTP_200_OK)
-            response.set_cookie(key="refresh_token",value=refresh_token,httponly=True,secure=False,samesite='None')
+            response.set_cookie(key="refresh_token",value=refresh_token,httponly=True,secure=True,samesite='Lax')
             return response
  
         except SuperAdmin.DoesNotExist:
