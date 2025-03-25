@@ -10,7 +10,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from .kafka_producer import send_hrm_event
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 # Create your views here.
 class SuperAdminViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
