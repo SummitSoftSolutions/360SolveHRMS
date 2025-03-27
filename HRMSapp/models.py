@@ -67,6 +67,7 @@ class MasterModule(models.Model):
     ]
     Name = models.CharField(max_length=150,default=True)
     Logo=models.FileField(upload_to='media/logs/',default=True)
+    Description=models.CharField(max_length=150,default=True,null=True)
     IsDeleted=models.IntegerField()
     Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
     
