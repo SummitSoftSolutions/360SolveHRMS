@@ -63,10 +63,10 @@ class MasterModule(models.Model):
     STATUS_CHOICES = [
         (1, 'Active'),
         (0, 'Inactive'),
-        (2, 'Pending'),
     ]
     Name = models.CharField(max_length=150,default=True)
     Logo=models.FileField(upload_to='media/logs/',default=True)
+    Description=models.CharField(max_length=150,null=True)
     IsDeleted=models.IntegerField()
     Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
     
@@ -78,13 +78,8 @@ class MasterModule(models.Model):
     
     
 class SubModule(models.Model):
-    STATUS_CHOICES = [
-        (1, 'Active'),
-        (0, 'Inactive'),
-    ]
     Name = models.CharField(max_length=150,default=True)
     Module=models.ForeignKey(MasterModule,on_delete=models.CASCADE)
-    Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
      
     class Meta:
          db_table = "SubModule"
