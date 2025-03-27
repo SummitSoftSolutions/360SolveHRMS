@@ -40,6 +40,7 @@ class SuperAdminViewSet(viewsets.ViewSet):
     def create(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
+        
         try:
             user = SuperAdmin.objects.get(email=email,password=password)
  
@@ -58,8 +59,41 @@ class SuperAdminViewSet(viewsets.ViewSet):
             return response
  
         except SuperAdmin.DoesNotExist:
-            print("User not found!")  
             return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+
+class RefreshTokenView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self, request):
+        refresh_token = request.COOKIES.get('refresh_token')  # Get from cookie
+        if not refresh_token:
+            return Response({"status": "error", "message": "No refresh token provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+            return Response({"access_token": access_token}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status": "error", "message": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        
+
+class RefreshTokenView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self,request):
+        refresh_token = request.COOKIES.get('refresh_token')
+        print("cookies",refresh_token)
+        if not refresh_token:
+            return Response({'status':"error","message":"No refreshtoken provided"},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh =RefreshToken(refresh_token)
+            access_token =str(refresh.access_token)
+            return Response({"acess":access_token},status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
+    
+    
 
 
 class RefreshTokenView(viewsets.ViewSet):
@@ -77,6 +111,72 @@ class RefreshTokenView(viewsets.ViewSet):
             return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
         
 
+class AddingModules(viewsets.ViewSet):
+    permission_classes=[AllowAny]
+    def create(self,request):
+        data={
+            "Name":request.data.get("Name"),
+            "Logo":request.data.get("Logo"),
+            "IsDeleted":request.data.get("IsDeleted"),
+            "Status":request.data.get("Status",1)
+        }
+        serializer = MasterModuleSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+
+        
+        
+''' Submodules '''
+class CreatSubmodule(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'Name': openapi.Schema(type=openapi.TYPE_STRING, example="user@example.com"),
+                'Module': openapi.Schema(type=openapi.TYPE_STRING, example="1"),
+            },
+            required=['Name', 'Module']
+        ),
+        responses={
+            200: openapi.Response("Success", openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                'status': openapi.Schema(type=openapi.TYPE_STRING, example="success"),
+                'message': openapi.Schema(type=openapi.TYPE_STRING, example="Logged successfully!"),
+                'access_token': openapi.Schema(type=openapi.TYPE_STRING, example="your_access_token"),
+                'refresh_token': openapi.Schema(type=openapi.TYPE_STRING, example="your_refresh_token"),
+            })),
+            400: "Invalid  data",
+            404: "User not found"
+        }
+    )
+    def create(self,request):
+        try:
+            data ={
+                "Name":request.data.get('Name'),
+                "Limit":request.data.get('Limit'),
+                "Module":request.data.get('Module')
+            }
+            module_data = SubModuleSerializer(data = data)
+            if module_data.is_valid():
+                module_data.save()
+                return Response(module_data.data,status=status.HTTP_201_CREATED)
+            else:
+                return Response(module_data.errors,status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(f"{e}",status=status.HTTP_400_BAD_REQUEST)
+        
+    
+    def list(self,request):
+        permission_classes = [AllowAny]
+        module_id = request.query_params.get('module_id')
+        if module_id:
+            sub_data = SubModule.objects.filter(Module=module_id)
+        serializer  = SubModuleSerializer(sub_data,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+            
 class ModuleViewSet(viewsets.ViewSet):
     permission_classes=[AllowAny]
     parser_classes = [MultiPartParser, FormParser]  # Enable file upload parsing

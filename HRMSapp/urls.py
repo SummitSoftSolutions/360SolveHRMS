@@ -15,13 +15,17 @@ schema_view = get_schema_view(
     permission_classes=(AllowAny,)
 )
 
+
+ 
 router=DefaultRouter()
 router.register(r'SuperAdmin',SuperAdminViewSet,basename='SuperAdmin'),
 router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView')
+router.register(r'CreatSubmodule',CreatSubmodule,basename='CreatSubmodule')
 router.register(r'AddingModules',ModuleViewSet,basename='AddingModules')
 
+ 
 urlpatterns = [
-    
+   
     path('',include(router.urls)),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
