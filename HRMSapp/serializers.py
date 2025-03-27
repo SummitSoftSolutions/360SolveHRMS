@@ -3,11 +3,11 @@ from .models import *
 
 class SuperAdminSerializer(serializers.ModelSerializer):
     class Meta:
-        models=SuperAdmin
+        model=SuperAdmin
         fields='__all__'
         
 
-class ModuleSerializer(serializers.Serializer):
+class MasterModuleSerializer(serializers.ModelSerializer):
     class Meta:
-        models=MasterModule
+        model=MasterModule
         fields='__all__'
