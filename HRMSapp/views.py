@@ -74,6 +74,24 @@ class RefreshTokenView(viewsets.ViewSet):
             return Response({"acess":access_token},status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
+        
+
+class AddingModules(viewsets.ViewSet):
+    permission_classes=[AllowAny]
+    def create(self,request):
+        data={
+            "Name":request.data.get("Name"),
+            "Logo":request.data.get("Logo"),
+            "IsDeleted":request.data.get("IsDeleted"),
+            "Status":request.data.get("Status",1)
+        }
+        serializer = ModuleSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        
+        
     
     
 
