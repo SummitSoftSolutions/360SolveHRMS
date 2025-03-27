@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from .kafka_producer import send_hrm_event
 from django.contrib.auth import get_user_model
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 # Create your views here.
@@ -76,22 +77,56 @@ class RefreshTokenView(viewsets.ViewSet):
             return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
         
 
-class AddingModules(viewsets.ViewSet):
+class ModuleViewSet(viewsets.ViewSet):
     permission_classes=[AllowAny]
-    def create(self,request):
-        data={
-            "Name":request.data.get("Name"),
-            "Logo":request.data.get("Logo"),
-            "IsDeleted":request.data.get("IsDeleted"),
-            "Status":request.data.get("Status",1)
+    parser_classes = [MultiPartParser, FormParser]  # Enable file upload parsing
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('Name', openapi.IN_FORM, description="Module Name", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('Logo', openapi.IN_FORM, description="Upload Logo", type=openapi.TYPE_FILE, required=True),
+            openapi.Parameter('IsDeleted', openapi.IN_FORM, description="Is Deleted (0 or 1)", type=openapi.TYPE_INTEGER, required=False),
+            openapi.Parameter('Status', openapi.IN_FORM, description="Status (0: Inactive, 1: Active, 2: Pending)", type=openapi.TYPE_INTEGER, required=False),
+        ]
+    )
+    def create(self, request):
+        name = request.data.get("Name")
+        logo = request.FILES.get("Logo")  
+        is_deleted = request.data.get("IsDeleted", 0)
+        status_value = request.data.get("Status", 1)
+
+        if not name or not logo:
+            return Response({"error": "Name and Logo are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "Name": name,
+            "Logo": logo,
+            "IsDeleted": is_deleted,
+            "Status": status_value,
         }
-        serializer = ModuleSerializer(data=data)
+
+        serializer = MasterModuleSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    def list(self,request):
+        try:
+            data = MasterModule.objects.all()
+            
+            if not data.exists():
+                Response({"message":"No records found"},status=status.HTTP_404_NOT_FOUND)
+                
+            serializer = MasterModuleSerializer(data,many=True)
+        except Exception as e:
+            return Response(
+                {"error":"Something went wrong","details":str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
         
+    
     
     
 
