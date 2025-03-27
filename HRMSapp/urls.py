@@ -18,7 +18,7 @@ schema_view = get_schema_view(
 router=DefaultRouter()
 router.register(r'SuperAdmin',SuperAdminViewSet,basename='SuperAdmin'),
 router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView')
-router.register(r'AddingModules',ModuleViewSet,basename='AddingModules')
+router.register(r'ModuleViewSet',ModuleViewSet,basename='ModuleViewSet')
 
 urlpatterns = [
     
