@@ -3,5 +3,17 @@ from .models import *
 
 class SuperAdminSerializer(serializers.ModelSerializer):
     class Meta:
-        models=SuperAdmin
+        model=SuperAdmin
+        fields='__all__'
+        
+
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=MasterModule
+        fields='__all__'
+        
+
+class SubModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=SubModule
         fields='__all__'

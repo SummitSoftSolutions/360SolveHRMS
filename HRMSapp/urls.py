@@ -15,10 +15,21 @@ schema_view = get_schema_view(
     permission_classes=(AllowAny,)
 )
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title='HRMS API',
+        default_version='v1',
+        description="HR Management System API Documentation",
+    ),
+    public=True,
+    permission_classes=(AllowAny,)
+)
+
  
 router=DefaultRouter()
-router.register(r'SuperAdmin',SuperAdminViewSet,basename='SuperAdmin')
+router.register(r'SuperAdmin',SuperAdminViewSet,basename='SuperAdmin'),
 router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView')
+router.register(r'CreatSubmodule',CreatSubmodule,basename='CreatSubmodule')
 
  
 urlpatterns = [
