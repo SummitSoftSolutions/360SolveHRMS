@@ -47,11 +47,12 @@ class SuperAdminViewSet(viewsets.ViewSet):
         }
     )
     def create(self, request):
+        
         email = request.data.get("email")
         password = request.data.get("password")
         
         try:
-            user = SuperAdmin.objects.get(email=email,password=password)
+            user = User.objects.get(email=email,password=password)
  
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
@@ -67,28 +68,13 @@ class SuperAdminViewSet(viewsets.ViewSet):
             response.set_cookie(key="refresh_token",value=refresh_token,httponly=True,secure=True,samesite='Lax')
             return response
  
-        except SuperAdmin.DoesNotExist:
+        except User.DoesNotExist:
             return Response({"status": "error", "message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     
     
 
 
         
-
-class RefreshTokenView(viewsets.ViewSet):
-    permission_classes = [AllowAny]
-    def create(self,request):
-        refresh_token = request.COOKIES.get('refresh_token')
-        print("cookies",refresh_token)
-        if not refresh_token:
-            return Response({'status':"error","message":"No refreshtoken provided"},status=status.HTTP_400_BAD_REQUEST)
-        try:
-            refresh =RefreshToken(refresh_token)
-            access_token =str(refresh.access_token)
-            return Response({"acess":access_token},status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
-    
     
 
 
@@ -123,7 +109,7 @@ class CreatSubmodule(viewsets.ViewSet):
         try:
             data ={
                 "Name":request.data.get('Name'),
-                "Limit":request.data.get('Limit'),
+                # "limit":request.data.get('Limit'),
                 "Module":request.data.get('Module')
             }
             module_data = SubModuleSerializer(data = data)
@@ -175,6 +161,7 @@ class ModuleViewSet(viewsets.ViewSet):
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('Name', openapi.IN_FORM, description="Module Name", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('Description', openapi.IN_FORM, description="Description", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('Logo', openapi.IN_FORM, description="Upload Logo", type=openapi.TYPE_FILE, required=True),
             openapi.Parameter('IsDeleted', openapi.IN_FORM, description="Is Deleted (0 or 1)", type=openapi.TYPE_INTEGER, required=False),
             openapi.Parameter('Status', openapi.IN_FORM, description="Status (0: Inactive, 1: Active, 2: Pending)", type=openapi.TYPE_INTEGER, required=False),
@@ -203,18 +190,64 @@ class ModuleViewSet(viewsets.ViewSet):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
     def list(self,request):
+        permission_classes=[AllowAny]
+        parser_classes=[MultiPartParser,FormParser]
         try:
             data = MasterModule.objects.all()
+            print("data:---",data)
             
             if not data.exists():
-                Response({"message":"No records found"},status=status.HTTP_404_NOT_FOUND)
+                return Response({"message":"No records found"},status=status.HTTP_404_NOT_FOUND)
                 
             serializer = MasterModuleSerializer(data,many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(
-                {"error":"Something went wrong","details":str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error":"Something went wrong","details":str(e)},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @swagger_auto_schema(
+            request_body=MasterModuleSerializer 
+        )
+    def partial_update(self, request, pk=None):
+        try:
+            update_data = MasterModule.objects.get(pk=pk)
+        except MasterModule.DoesNotExist:
+            return Response({"message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MasterModuleSerializer(update_data, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Module Updated Successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+        return Response({"error": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
+    @swagger_auto_schema(
+         openapi.Parameter('Id', openapi.IN_FORM, description="Id", type=openapi.TYPE_INTEGER, required=False)
+        
+    )
+    def retrive(self,request,id):
+        queryset = MasterModule.objects.all()
+        user = get_object_or_404(queryset,id=id)
+        serializer = MasterModuleSerializer(user)
+        return Response(serializer.data)
+        
+        
+        
+        
+class RefreshTokenView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self,request):
+        refresh_token = request.COOKIES.get('refresh_token')
+        print("cookies",refresh_token)
+        if not refresh_token:
+            return Response({'status':"error","message":"No refreshtoken provided"},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh =RefreshToken(refresh_token)
+            access_token =str(refresh.access_token)
+            return Response({"acess":access_token},status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
+    
+    
+    
         
         
     
