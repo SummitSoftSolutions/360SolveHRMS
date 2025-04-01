@@ -1,55 +1,12 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
-class SuperAdminManager(BaseUserManager):
-    def create_user(self, email, name, password=None):
-        if not email:
-            raise ValueError("Users must have an email address")
-        email = self.normalize_email(email)
-        user = self.model(email=email, name=name)
-        user.set_password(password)  # Hash the password
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, name, password):
-        user = self.create_user(email, name, password)
-        user.is_superuser = True
-        user.is_staff = True
-        user.save(using=self._db)
-        return user
-
-class SuperAdmin(AbstractBaseUser, PermissionsMixin):
-    name = models.CharField(max_length=150)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=150, default=True)  # Set default
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=True)
-
-    groups = models.ManyToManyField(
-        "auth.Group",
-        related_name="superadmin_groups",
-        blank=True,
-    )
-    user_permissions = models.ManyToManyField(
-        "auth.Permission",
-        related_name="superadmin_permissions",
-        blank=True,
-    )
-
-    objects = SuperAdminManager()
-
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["name"]
-    
-    class Meta:
-        db_table = "SuperAdmin"
-
-    def __str__(self):
-        return self.name
 
 class Role(models.Model):
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True)
+   
     
     class Meta:
         db_table = "Role"
@@ -57,6 +14,48 @@ class Role(models.Model):
     def __str__(self):
         return self.name
     
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None,role=None,  **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        if not role:
+            role = Role.objects.get_or_create(name="User")[0]
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)  # Hash password
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        admin_role, _ = Role.objects.get_or_create(name="SuperAdmin")
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_admin", True)
+        return self.create_user(email, password,role=admin_role, **extra_fields)
+
+class User(AbstractBaseUser):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=150)
+    email = models.EmailField(unique=True)
+    role=models.ForeignKey(Role,on_delete=models.CASCADE,null=True)
+    groupAcess = models.BooleanField(default=False)
+    createdOn=models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False) 
+    is_deleted=models.BooleanField(default=False)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["name"]
+
+    class Meta:
+        db_table = "User"
+
+    def __str__(self):
+        return self.email
 
 
 class MasterModule(models.Model):
@@ -67,7 +66,7 @@ class MasterModule(models.Model):
     Name = models.CharField(max_length=150,default=True)
     Logo=models.FileField(upload_to='media/logs/',default=True)
     Description=models.CharField(max_length=150,null=True)
-    IsDeleted=models.IntegerField()
+    IsDeleted=models.IntegerField(default=0)
     Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
     
     class Meta:
@@ -88,4 +87,3 @@ class SubModule(models.Model):
         return self.Name
     
      
-    

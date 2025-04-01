@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from .models import *
 
-class SuperAdminSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model=SuperAdmin
-        fields='__all__'
+        model=User
+        fields="__all__"
         
 
 class MasterModuleSerializer(serializers.ModelSerializer):
