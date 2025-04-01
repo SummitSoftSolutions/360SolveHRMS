@@ -12,11 +12,25 @@ from rest_framework.decorators import api_view, permission_classes
 # from .kafka_producer import send_hrm_event
 from django.contrib.auth import get_user_model
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import make_password,check_password
+from rest_framework_simplejwt.tokens import UntypedToken
 
+User = get_user_model()
 
-# Create your views here.
+# Token Mixins
+
+class TokenMixin:
+    def extract_token(self, request):
+        """Helper method to extract and decode the token."""
+        header = request.headers.get('Authorization')
+        if not header:
+            return None  # Or raise an exception if token is missing
+        token = header.split()[1]
+        decoded_token = UntypedToken(token)  # Decodes the token and returns a dictionary-like object
+        return decoded_token
+        
+
 class SuperAdminViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
     @swagger_auto_schema(
@@ -45,8 +59,9 @@ class SuperAdminViewSet(viewsets.ViewSet):
         password = request.data.get("password")
         
         try:
-            user = User.objects.get(email=email,password=password)
- 
+            user = User.objects.get(email=email)
+            if not check_password(password,user.password):
+                return Response({"error":"Invalid credentials"},status=status.HTTP_401_UNAUTHORIZED)
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
@@ -58,7 +73,7 @@ class SuperAdminViewSet(viewsets.ViewSet):
                 "message": "Logged in successfully!",
                 "access_token": access_token,
             }, status=status.HTTP_200_OK)
-            response.set_cookie(key="refresh_token",value=refresh_token,httponly=True,secure=True,samesite='Lax')
+            response.set_cookie(key="refresh_token",value=refresh_token,httponly=True,secure=False,samesite='None')
             return response
  
         except User.DoesNotExist:
@@ -66,32 +81,17 @@ class SuperAdminViewSet(viewsets.ViewSet):
     
     
 
-class RefreshTokenView(viewsets.ViewSet):
-    permission_classes = [AllowAny]
-    def create(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')  # Get from cookie
-        if not refresh_token:
-            return Response({"status": "error", "message": "No refresh token provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
-            return Response({"access_token": access_token}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"status": "error", "message": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
 
         
-    
-
         
 ''' Submodules '''
-class CreatSubmodule(viewsets.ViewSet):
+class CreatSubmodule(viewsets.ViewSet,TokenMixin):
     permission_classes = [AllowAny]
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'Name': openapi.Schema(type=openapi.TYPE_STRING, example="user@example.com"),
+                'Name': openapi.Schema(type=openapi.TYPE_STRING, example="Name"),
                 'Module': openapi.Schema(type=openapi.TYPE_STRING, example="1"),
             },
             required=['Name', 'Module']
@@ -126,13 +126,42 @@ class CreatSubmodule(viewsets.ViewSet):
     
     def list(self,request):
         permission_classes = [AllowAny]
+        token_data = self.extract_token(request)
+        if not token_data:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        id_data = token_data.get('user_id')
+        print("id_data", id_data)
         module_id = request.query_params.get('module_id')
         if module_id:
             sub_data = SubModule.objects.filter(Module=module_id)
         serializer  = SubModuleSerializer(sub_data,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
             
-            
+    
+    def retrieve(self,request,pk=None):
+        item = SubModule.objects.get(id = pk)
+        token_data = self.extract_token(request)
+        user_id = token_data.get('id')
+        print("user_id",user_id)
+        serializer = SubModuleSerializer(item)
+        return Response(serializer.data)
+    
+    def destroy(self,request,pk=None):
+        item = get_object_or_404(SubModule,id=pk)
+        item.IsDeleted = 1
+        item.save()
+        return Response({"message": "SubModule marked as deleted."}, status=status.HTTP_204_NO_CONTENT)
+    
+    def partial_update(self,request,pk=None):
+        item = get_object_or_404(SubModule,id=pk)
+        serializer = SubModuleSerializer(data=request.data,instance=item,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 class ModuleViewSet(viewsets.ViewSet):
     permission_classes=[AllowAny]
     parser_classes = [MultiPartParser, FormParser]  # Enable file upload parsing
@@ -208,11 +237,64 @@ class ModuleViewSet(viewsets.ViewSet):
         serializer = MasterModuleSerializer(user)
         return Response(serializer.data)
         
+        
+        
+        
+class RefreshTokenView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self,request):
+        refresh_token = request.COOKIES.get('refresh_token')
+        print("cookies",refresh_token)
+        if not refresh_token:
+            return Response({'status':"error","message":"No refreshtoken provided"},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh =RefreshToken(refresh_token)
+            access_token =str(refresh.access_token)
+            return Response({"acess":access_token},status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
+    
+    
+    
+        
+        
+class SubmoduleLimitCreation(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self,request):
+        try:
+            submod = request.data.get('submod')
+            limit_value = request.data.get('limit_value')
+            print("limit_value",limit_value,submod)
+            sub_id =  SubModule.objects.get(id  = submod)
+            sub_id_data =  sub_id.id
+            data = {
+                "submod":sub_id_data,
+                "limit_value":limit_value
+            }
+            sub_data  = SubModuleLimitSerializer(data=data)
+            if sub_data.is_valid():
+                sub_data.save()
+                return Response({"status":"success"},status=status.HTTP_200_OK)
+            else:
+                return Response({"error":sub_data.errors},status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({"error":"Data error"},status=status.HTTP_401_UNAUTHORIZED)
+        
+    
+    def retrieve(self,request,pk=None):
+        if pk is None:
+            return Response({"error":"Id's not provided"})
+        try:        
+            sub_data = SubmoduleLimit.objects.get(submod=pk)
+        except SubmoduleLimit.DoesNotExist :
+            return Response({"status":"Data doesn't exist"})        
+        sub_serializer = SubModuleLimitSerializer(sub_data)
+        return Response(sub_serializer.data)
+    
             
         
         
-    
-    
-    
+            
 
 

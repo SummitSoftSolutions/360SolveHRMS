@@ -77,8 +77,14 @@ class MasterModule(models.Model):
     
     
 class SubModule(models.Model):
+    STATUS_CHOICES = [
+        (1, 'Active'),
+        (0, 'Inactive'),
+    ]
     Name = models.CharField(max_length=150,default=True)
     Module=models.ForeignKey(MasterModule,on_delete=models.CASCADE)
+    IsDeleted=models.IntegerField(default=0)
+    Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
      
     class Meta:
          db_table = "SubModule"
@@ -87,3 +93,11 @@ class SubModule(models.Model):
         return self.Name
     
      
+class SubmoduleLimit(models.Model):
+    submod=models.ForeignKey(SubModule,on_delete=models.CASCADE)
+    limit_value = models.IntegerField(default=0)
+    isactive =    models.IntegerField(default=1)
+    isdeleted =    models.IntegerField(default=0)
+    
+    class Meta:
+         db_table = "SubmoduleLimit"
