@@ -31,13 +31,13 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
-    "https://192.168.0.163",
+    "https://192.168.0.158",
     "https://192.168.0.40",
     "https://192.168.0.43",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://192.168.0.163",
+    "https://192.168.0.158",
     "https://192.168.0.40",
     "https://192.168.0.43",
 ]
@@ -110,7 +110,6 @@ REST_FRAMEWORK = {
 # Django project settings.py
 
 from datetime import timedelta
-...
 
 
 
@@ -141,12 +140,18 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-    'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
-    'SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER': timedelta(days=1),
-    'SLIDING_TOKEN_LIFETIME_LATE_USER': timedelta(days=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Set token lifetime
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),  # ✅ Make sure 'Bearer' is used in headers
+    "USER_ID_FIELD": "id",  # ✅ Ensure JWT retrieves user ID
+    "USER_ID_CLAIM": "user_id",
+    "ALGORITHM": "HS256",
 }
+
+AUTH_USER_MODEL = "HRMSapp.User"
+
 
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
