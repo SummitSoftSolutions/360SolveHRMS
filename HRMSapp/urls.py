@@ -21,7 +21,7 @@ router=DefaultRouter()
 router.register(r'SuperAdmin',SuperAdminViewSet,basename='SuperAdmin'),
 router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView')
 router.register(r'CreatSubmodule',CreatSubmodule,basename='CreatSubmodule')
-router.register(r'AddingModules',ModuleViewSet,basename='AddingModules')
+
 
  
 urlpatterns = [

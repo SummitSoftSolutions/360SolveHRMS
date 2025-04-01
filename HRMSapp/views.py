@@ -9,12 +9,21 @@ from  drf_yasg import openapi
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-from .kafka_producer import send_hrm_event
+# from .kafka_producer import send_hrm_event
 from django.contrib.auth import get_user_model
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.shortcuts import get_object_or_404
 
 User = get_user_model()
-# Create your views here.
+
+# Token Mixins
+
+class TokenMixin:
+    def extract_token(self,request):
+        header = request.headers.get('Authorization')
+        token = header.split()[1]
+        return token 
+
 class SuperAdminViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
     @swagger_auto_schema(
@@ -63,19 +72,6 @@ class SuperAdminViewSet(viewsets.ViewSet):
     
     
 
-class RefreshTokenView(viewsets.ViewSet):
-    permission_classes = [AllowAny]
-    def create(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')  # Get from cookie
-        if not refresh_token:
-            return Response({"status": "error", "message": "No refresh token provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
-            return Response({"access_token": access_token}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"status": "error", "message": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
 
         
 
@@ -96,36 +92,7 @@ class RefreshTokenView(viewsets.ViewSet):
     
 
 
-class RefreshTokenView(viewsets.ViewSet):
-    permission_classes = [AllowAny]
-    def create(self,request):
-        refresh_token = request.COOKIES.get('refresh_token')
-        print("cookies",refresh_token)
-        if not refresh_token:
-            return Response({'status':"error","message":"No refreshtoken provided"},status=status.HTTP_400_BAD_REQUEST)
-        try:
-            refresh =RefreshToken(refresh_token)
-            access_token =str(refresh.access_token)
-            return Response({"acess":access_token},status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'status':"error","message":"Invalid refresh token"},status=status.HTTP_401_UNAUTHORIZED)
-        
 
-class AddingModules(viewsets.ViewSet):
-    permission_classes=[AllowAny]
-    def create(self,request):
-        data={
-            "Name":request.data.get("Name"),
-            "Logo":request.data.get("Logo"),
-            "IsDeleted":request.data.get("IsDeleted"),
-            "Status":request.data.get("Status",1)
-        }
-        serializer = MasterModuleSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    
 
         
         
@@ -136,7 +103,7 @@ class CreatSubmodule(viewsets.ViewSet):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'Name': openapi.Schema(type=openapi.TYPE_STRING, example="user@example.com"),
+                'Name': openapi.Schema(type=openapi.TYPE_STRING, example="Name"),
                 'Module': openapi.Schema(type=openapi.TYPE_STRING, example="1"),
             },
             required=['Name', 'Module']
@@ -177,6 +144,30 @@ class CreatSubmodule(viewsets.ViewSet):
         serializer  = SubModuleSerializer(sub_data,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
             
+    
+    def retrieve(self,request,pk=None):
+        item = SubModule.objects.get(id = pk)
+        token_data = self.extract_token(request)
+        user_id = token_data.get('id')
+        print("user_id",user_id)
+        serializer = SubModuleSerializer(item)
+        return Response(serializer.data)
+    
+    def destroy(self,request,pk=None):
+        item = get_object_or_404(SubModule,id=pk)
+        item.IsDeleted = 1
+        item.save()
+        return Response({"message": "SubModule marked as deleted."}, status=status.HTTP_204_NO_CONTENT)
+    
+    def partial_update(self,request,pk=None):
+        item = get_object_or_404(SubModule,id=pk)
+        serializer = SubModuleSerializer(data=request.data,instance=item,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 class ModuleViewSet(viewsets.ViewSet):
     permission_classes=[AllowAny]
     parser_classes = [MultiPartParser, FormParser]  # Enable file upload parsing
