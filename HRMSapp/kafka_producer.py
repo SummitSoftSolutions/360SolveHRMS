@@ -10,15 +10,6 @@
 #     """Send HRM event to Kafka topic with dynamic parameters"""
 #     event_data = {
 #         "event_type": event_type,
-<<<<<<< HEAD
-#         **kwargs  # Include all extra key-value pairs
-#     }
-    
-#     event_json = json.dumps(event_data)  # Convert to JSON
-#     producer.produce('hrm-events', event_json.encode('utf-8'))
-#     producer.flush()  # Ensure immediate delivery
-#     print(f"HRM Event Sent: {event_json}")  # Debugging
-=======
 #         **kwargs  
 #     }
     
@@ -26,4 +17,3 @@
 #     producer.produce('hrm-events', event_json.encode('utf-8'))
 #     producer.flush()  
 #     print(f"HRM Event Sent: {event_json}")  
->>>>>>> a7d121cbe5e6aca323b6371fe845da5eef990110

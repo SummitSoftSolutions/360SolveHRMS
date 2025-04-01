@@ -17,3 +17,15 @@ class SubModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model=SubModule
         fields='__all__'
+        
+class SubLimitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=SubModule
+        fields= ['id','Name']
+        
+
+class SubModuleLimitSerializer(serializers.ModelSerializer):
+    submod = SubLimitSerializer()
+    class Meta:
+        model = SubmoduleLimit
+        fields = ['id', 'limit_value', 'isactive', 'isdeleted', 'submod']

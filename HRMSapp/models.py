@@ -93,3 +93,11 @@ class SubModule(models.Model):
         return self.Name
     
      
+class SubmoduleLimit(models.Model):
+    submod=models.ForeignKey(SubModule,on_delete=models.CASCADE)
+    limit_value = models.IntegerField(default=0)
+    isactive =    models.IntegerField(default=1)
+    isdeleted =    models.IntegerField(default=0)
+    
+    class Meta:
+         db_table = "SubmoduleLimit"
