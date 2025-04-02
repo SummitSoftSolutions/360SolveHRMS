@@ -197,6 +197,14 @@ class ModuleViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(
+        operation_description="Retrieve all master modules",
+        responses={
+            200: MasterModuleSerializer(many=True),
+            404: openapi.Response("No records found"),
+            500: openapi.Response("Something went wrong"),
+        }
+    )
     def list(self,request):
         permission_classes=[AllowAny]
         parser_classes=[MultiPartParser,FormParser]
@@ -293,7 +301,16 @@ class SubmoduleLimitCreation(viewsets.ViewSet):
         return Response(sub_serializer.data)
     
             
-        
+    def destroy(self,request,pk=None):
+        if pk is None:
+            return Response({"error":"Id's not provided"})
+        try:        
+            sub_data = SubmoduleLimit.objects.get(submod=pk)
+        except SubmoduleLimit.DoesNotExist :
+            return Response({"status":"Data doesn't exist"})        
+        sub_data.isdeleted = 1
+        sub_data.save()
+        return Response({"status":"Successfully deleted"})
         
             
 
