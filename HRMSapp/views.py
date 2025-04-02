@@ -198,15 +198,26 @@ class ModuleViewSet(viewsets.ViewSet):
             return Response({"message": "Module Updated Successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
         return Response({"error": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
+    
     @swagger_auto_schema(
-         openapi.Parameter('Id', openapi.IN_FORM, description="Id", type=openapi.TYPE_INTEGER, required=False)
-        
+        operation_description="Retrieve a user by ID",
+        responses={200: UserSerializer()},
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_PATH,  # ✅ pk is passed in the URL
+                description="User ID",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ]
     )
-    def retrive(self,request,id):
-        queryset = MasterModule.objects.all()
-        user = get_object_or_404(queryset,id=id)
-        serializer = MasterModuleSerializer(user)
-        return Response(serializer.data)
+    def retrieve(self, request, pk=None):
+        """Retrieve a single user by their ID"""
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
             
         
