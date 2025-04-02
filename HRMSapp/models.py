@@ -101,3 +101,8 @@ class SubmoduleLimit(models.Model):
     
     class Meta:
          db_table = "SubmoduleLimit"
+         
+
+# class Subscription(models.Model):
+#     Group = models.ForeignKey()
+    

@@ -15,6 +15,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password,check_password
 from rest_framework_simplejwt.tokens import UntypedToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 User = get_user_model()
 
@@ -201,7 +202,7 @@ class ModuleViewSet(viewsets.ViewSet):
         permission_classes=[AllowAny]
         parser_classes=[MultiPartParser,FormParser]
         try:
-            data = MasterModule.objects.all()
+            data = MasterModule.objects.filter(IsDeleted=0)
             print("data:---",data)
             
             if not data.exists():
@@ -216,6 +217,8 @@ class ModuleViewSet(viewsets.ViewSet):
             request_body=MasterModuleSerializer 
         )
     def partial_update(self, request, pk=None):
+        authentication_classes = [JWTAuthentication] 
+        permission_classes = [IsAuthenticated]
         try:
             update_data = MasterModule.objects.get(pk=pk)
         except MasterModule.DoesNotExist:
@@ -227,26 +230,25 @@ class ModuleViewSet(viewsets.ViewSet):
             return Response({"message": "Module Updated Successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
         return Response({"error": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    @swagger_auto_schema(
-        operation_description="Retrieve a user by ID",
-        responses={200: UserSerializer()},
-        manual_parameters=[
-            openapi.Parameter(
-                name="pk",
-                in_=openapi.IN_PATH,  # ✅ pk is passed in the URL
-                description="User ID",
-                type=openapi.TYPE_INTEGER,
-                required=True
-            )
-        ]
-    )
+
     def retrieve(self, request, pk=None):
-        """Retrieve a single user by their ID"""
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            user = MasterModule.objects.get(id=pk,IsDeleted=0)
+            serializer = MasterModuleSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message":"No recordss found"},status=status.HTTP_404_NOT_FOUND)
+    
+    def destroy(self,request,pk=None):
+        try:
+            query_set = MasterModule.objects.get(id=pk,IsDeleted=0)
+            print("module:",query_set)
+            query_set.IsDeleted = 1
+            query_set.save()
+            return Response({'message':"module deleted sucessfully.."},status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error':"Something went wrong"},status=status.HTTP_400_BAD_REQUEST)
+        
         
         
         
