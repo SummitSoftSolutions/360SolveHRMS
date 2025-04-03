@@ -198,6 +198,14 @@ class ModuleViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(
+        operation_description="Retrieve all master modules",
+        responses={
+            200: MasterModuleSerializer(many=True),
+            404: openapi.Response("No records found"),
+            500: openapi.Response("Something went wrong"),
+        }
+    )
     def list(self,request):
         permission_classes=[AllowAny]
         parser_classes=[MultiPartParser,FormParser]
@@ -306,7 +314,62 @@ class SubmoduleLimitCreation(viewsets.ViewSet):
         return Response(sub_serializer.data)
     
             
+    def destroy(self,request,pk=None):
+        if pk is None:
+            return Response({"error":"Id's not provided"})
+        try:        
+            sub_data = SubmoduleLimit.objects.get(submod=pk)
+        except SubmoduleLimit.DoesNotExist :
+            return Response({"status":"Data doesn't exist"})        
+        sub_data.isdeleted = 1
+        sub_data.save()
+        return Response({"status":"Successfully deleted"})
+    
+    
+    
+class TaxCategory(viewsets.ViewSet):
+    @swagger_auto_schema(
+        request_body=TaxCategorySerializer
+    )
+    def create(self,request):
+        try:
+            name= request.data.get("name")
+            
+            data= {
+                "name":name,
+            }
+            serializer = TaxCategorySerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message":"created sucessfully..."},status=status.HTTP_201_CREATED)
+            return Response({"message":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
         
+        
+
+class TaxTypeViewSet(viewsets.ViewSet):
+    @ swagger_auto_schema(
+        request_body=TaxTypeSerializer
+    )
+    def create(self,request):
+        try:
+            taxName = request.data.get('taxName')
+            Category=request.data.get('Category')
+            
+            data = {
+                "taxName":taxName,
+                "Category":Category,
+            }
+            
+            serializer = TaxTypeSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message":"created sucessfully.."},status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"message":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                
         
             
 

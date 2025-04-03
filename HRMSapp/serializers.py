@@ -29,3 +29,13 @@ class SubModuleLimitSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmoduleLimit
         fields = ['id', 'limit_value', 'isactive', 'isdeleted', 'submod']
+    
+class TaxTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxType
+        fields = "__all__"
+    
+class TaxCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxCategory
+        fields="__all__"

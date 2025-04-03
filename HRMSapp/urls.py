@@ -23,6 +23,8 @@ router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView'
 router.register(r'ModuleViewSet',ModuleViewSet,basename='ModuleViewSet')
 router.register(r'CreatSubmodule',CreatSubmodule,basename='CreatSubmodule')
 router.register(r'SubmoduleLimitCreation',SubmoduleLimitCreation,basename='SubmoduleLimitCreation')
+router.register(r'TaxTypeViewSet',TaxTypeViewSet,basename='TaxTypeViewSet')
+router.register(r"TaxCategory",TaxCategory,basename='TaxCategory')
 
 
  
