@@ -28,19 +28,12 @@ SECRET_KEY = 'django-insecure-!xwrn#n8_=nqxe6ydq_woqb0gz7*utmae7=5*q_1_#jdb71=##
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['192.168.0.158']
 
-CORS_ALLOWED_ORIGINS = [
-    "https://192.168.0.158",
-    "https://192.168.0.40",
-    "https://192.168.0.43",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://192.168.0.158",
-    "https://192.168.0.40",
-    "https://192.168.0.43",
-]
+    
+
 
 
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Allows only same-origin iframes
@@ -147,6 +140,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),  # ✅ Make sure 'Bearer' is used in headers
     "USER_ID_FIELD": "id",  # ✅ Ensure JWT retrieves user ID
     "USER_ID_CLAIM": "user_id",
+    'SIGNING KEY':SECRET_KEY,
     "ALGORITHM": "HS256",
 }
 

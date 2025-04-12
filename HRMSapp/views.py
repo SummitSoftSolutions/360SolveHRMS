@@ -97,14 +97,9 @@ class CreatSubmodule(viewsets.ViewSet,TokenMixin):
             required=['Name', 'Module']
         ),
         responses={
-            200: openapi.Response("Success", openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                'status': openapi.Schema(type=openapi.TYPE_STRING, example="success"),
-                'message': openapi.Schema(type=openapi.TYPE_STRING, example="Logged successfully!"),
-                'access_token': openapi.Schema(type=openapi.TYPE_STRING, example="your_access_token"),
-                'refresh_token': openapi.Schema(type=openapi.TYPE_STRING, example="your_refresh_token"),
-            })),
-            400: "Invalid  data",
-            404: "User not found"
+            200: SubModuleSerializer(many=True),
+            404: openapi.Response("No records found"),
+            500: openapi.Response("Something went wrong"),
         }
     )
     def create(self,request):
@@ -123,7 +118,30 @@ class CreatSubmodule(viewsets.ViewSet,TokenMixin):
         except Exception as e:
             return Response(f"{e}",status=status.HTTP_400_BAD_REQUEST)
         
-    
+    @swagger_auto_schema(
+    manual_parameters=[
+        openapi.Parameter(
+            'module_id',
+            openapi.IN_QUERY,
+            description="ID of the module",
+            type=openapi.TYPE_STRING,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response("Success", openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'status': openapi.Schema(type=openapi.TYPE_STRING, example="success"),
+                'message': openapi.Schema(type=openapi.TYPE_STRING, example="Loaded successfully!"),
+               
+                
+            }
+        )),
+        400: "Invalid data",
+            404: "Data not found"
+        }
+    )
     def list(self,request):
         permission_classes = [AllowAny]
         token_data = self.extract_token(request)
@@ -314,4 +332,38 @@ class SubmoduleLimitCreation(viewsets.ViewSet):
         
             
 
+# Voucher creation
 
+class VoucherCreation(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    def create(self,request):
+        data = request.data
+        voucher_data = VouchertypeSerializer(data = data)
+        if voucher_data.is_valid():
+            voucher_data.save()
+            return Response({"status":"success"},status=status.HTTP_200_OK)
+        else:
+            return Response({"status":"error"},status=status.HTTP_400_BAD_REQUEST)
+            
+
+class GroupAdmincreation(viewsets.ViewSet):
+    def create(self,request):
+        data = request.data
+        group_data = GroupadminSerializer(data=data)
+        if group_data.is_valid():
+            group_data.save()
+            return Response({"status":"success"},status=status.HTTP_200_OK)
+        else:
+            return Response({"status":"error"},status=status.HTTP_400_BAD_REQUEST)
+        
+    
+
+class SubmoduleList(viewsets.ViewSet,TokenMixin):
+    permission_classes = [AllowAny]
+    def list(self,request):
+        token_data = self.extract_token(request)
+        if not token_data:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        sub_data = SubModule.objects.all()
+        serializer  = SubModuleSerializer(sub_data,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
