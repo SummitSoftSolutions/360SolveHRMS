@@ -58,15 +58,15 @@ jobs:
           & "${{ env.VENV_DIR }}\Scripts\python.exe" -m pip install --upgrade pip
           & "${{ env.VENV_DIR }}\Scripts\pip.exe" install -r "${{ env.REQUIREMENTS_FILE }}"
 
-      - name: Run Django migrations
-        shell: powershell
-        run: |
-          $PythonExe = Join-Path "${{ env.VENV_DIR }}" "Scripts\python.exe"
-          $ManagePy = Join-Path "${{ env.DEPLOY_DIR }}" "manage.py"
+      # - name: Run Django migrations
+      #   shell: powershell
+      #   run: |
+      #     $PythonExe = Join-Path "${{ env.VENV_DIR }}" "Scripts\python.exe"
+      #     $ManagePy = Join-Path "${{ env.DEPLOY_DIR }}" "manage.py"
 
-          Write-Host "Step 5: Applying Django Migrations..."
-          & $PythonExe $ManagePy makemigrations --merge
-          & $PythonExe $ManagePy migrate
+      #     Write-Host "Step 5: Applying Django Migrations..."
+      #     & $PythonExe $ManagePy makemigrations
+      #     & $PythonExe $ManagePy migrate
 
       - name: Ensure Django service exists and restart
         shell: powershell
