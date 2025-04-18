@@ -30,18 +30,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGINS = [
-    "https://192.168.0.158",
-    "https://192.168.0.40",
-    "https://192.168.0.43",
-    "https://192.168.0.163",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://192.168.0.158",
-    "https://192.168.0.40",
-    "https://192.168.0.43",
-]
+    
+
 
 
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Allows only same-origin iframes
@@ -148,6 +140,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),  # ✅ Make sure 'Bearer' is used in headers
     "USER_ID_FIELD": "id",  # ✅ Ensure JWT retrieves user ID
     "USER_ID_CLAIM": "user_id",
+    'SIGNING KEY':SECRET_KEY,
     "ALGORITHM": "HS256",
 }
 

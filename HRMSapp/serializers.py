@@ -14,9 +14,10 @@ class MasterModuleSerializer(serializers.ModelSerializer):
         
 
 class SubModuleSerializer(serializers.ModelSerializer):
+    Module = MasterModuleSerializer()
     class Meta:
         model=SubModule
-        fields='__all__'
+        fields= ['id','Name','IsDeleted','Module']
         
 class SubLimitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,6 +30,19 @@ class SubModuleLimitSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmoduleLimit
         fields = ['id', 'limit_value', 'isactive', 'isdeleted', 'submod']
+        
+        
+
+class VouchertypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=VoucherTypeTbl
+        fields= "__all__"
+        
+        
+class GroupadminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Groupadmin
+        fields= "__all__"
     
 class TaxTypeSerializer(serializers.ModelSerializer):
     class Meta:

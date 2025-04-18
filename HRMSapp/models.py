@@ -3,10 +3,10 @@ from django.db import models
 
 class CountryTbl(models.Model):
     country_name = models.CharField(max_length=255)
-    country_code = models.CharField(max_length=100)
-    country_currency = models.CharField(max_length=100)
-    country_status = models.CharField(max_length=100)
-    isdelete = models.IntegerField()
+    country_code = models.CharField(max_length=100,null=True, blank=True)
+    country_currency = models.CharField(max_length=100,null=True, blank=True)
+    country_status = models.CharField(max_length=100,null=True, blank=True)
+    isdelete = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'CountryTbl'
@@ -17,10 +17,10 @@ class CountryTbl(models.Model):
 class StateTbl(models.Model):
     state_name = models.CharField(max_length=255)
     country = models.ForeignKey(CountryTbl, models.DO_NOTHING)
-    state_status = models.CharField(max_length=100)
-    state_code = models.CharField(max_length=100)
-    short_name = models.CharField(max_length=100)
-    isdelete = models.IntegerField()
+    state_status = models.CharField(max_length=100,null=True, blank=True)
+    state_code = models.CharField(max_length=100,null=True, blank=True)
+    short_name = models.CharField(max_length=100,null=True, blank=True)
+    isdelete = models.IntegerField(default=0)
     gst_code = models.IntegerField(blank=True,null=True)
 
     class Meta:
@@ -50,8 +50,8 @@ class CityTbl(models.Model):
     city_name = models.CharField(max_length=255)
     district = models.ForeignKey('DistrictTbl', models.DO_NOTHING, null=True, blank=True)
     distance = models.IntegerField(null=True, blank=True)
-    status = models.IntegerField()
-    isdelete = models.IntegerField()
+    status = models.IntegerField(default=1)
+    isdelete = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'CityTbl'
@@ -154,7 +154,26 @@ class SubmoduleLimit(models.Model):
          db_table = "SubmoduleLimit"
 
 
-class GroupAdmin(models.Model):
+class Groupadmin(models.Model):
+    fname = models.CharField(max_length=100,blank=True, null=True)
+    contact_mob = models.CharField(max_length=20, blank=True, null=True)  # Mobile contact number (optional)
+    contact_email = models.EmailField(max_length=255, blank=True, null=True)
+    company_name =  models.CharField(max_length=100,null=True,blank=True)
+    country= models.ForeignKey(CountryTbl,on_delete=models.CASCADE,null=True,blank=True)
+    state= models.ForeignKey(StateTbl,on_delete=models.CASCADE,null=True,blank=True)
+    district= models.ForeignKey(DistrictTbl,on_delete=models.CASCADE,null=True,blank=True)
+    city= models.ForeignKey(CityTbl,on_delete=models.CASCADE,null=True,blank=True)
+    noe = models.CharField(max_length=100,null=True,blank=True)
+    username = models.CharField(max_length=100,null=True,blank=True)
+    password = models.CharField(max_length=100,null=True,blank=True)
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+         db_table = "GroupAdmin"
+    
+class Groupmaster(models.Model):
     groupname  = models.CharField(max_length=200)
     legalname = models.CharField(max_length=200)
     shortname = models.CharField(max_length=200)
@@ -171,8 +190,10 @@ class GroupAdmin(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = "GroupAdmin"
-         
+        db_table = "Groupmaster"
+    
+    
+     
          
 class CompanyTbl(models.Model):
     company_name = models.CharField(max_length=200)
@@ -182,7 +203,7 @@ class CompanyTbl(models.Model):
     district= models.ForeignKey(DistrictTbl,on_delete=models.CASCADE,null=True,blank=True)
     city= models.ForeignKey(CityTbl,on_delete=models.CASCADE,null=True,blank=True)
     company_logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
-    group =  models.ForeignKey(GroupAdmin,on_delete=models.CASCADE)
+    group =  models.ForeignKey(Groupmaster,on_delete=models.CASCADE)
     localname = models.CharField(max_length=200)
     legalname = models.CharField(max_length=200)
     company_address = models.CharField(max_length=200)
@@ -219,10 +240,20 @@ class BranchTbl(models.Model):
     
     class Meta:
         db_table = "BranchTbl"
+        
+# ---------------VoucherTypeTbl ------------------
+
+class VoucherTypeTbl(models.Model):
+    name  = models.CharField(max_length=100)
+    
+    class Meta:
+        db_table = "VoucherTypeTbl"
+        
+        
 
 
 class Subscription(models.Model):
-    group = models.ForeignKey(GroupAdmin,on_delete=models.CASCADE)
+    group = models.ForeignKey(Groupadmin,on_delete=models.CASCADE)
     company = models.ForeignKey(CompanyTbl,on_delete=models.CASCADE)
     branch = models.ForeignKey(BranchTbl,on_delete=models.CASCADE)
     Module = models.ForeignKey(MasterModule,on_delete=models.CASCADE,null=True)
