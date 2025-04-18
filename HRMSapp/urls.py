@@ -15,13 +15,26 @@ schema_view = get_schema_view(
     permission_classes=(AllowAny,)
 )
 
+
+ 
 router=DefaultRouter()
 router.register(r'SuperAdmin',SuperAdminViewSet,basename='SuperAdmin'),
-router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView')
+router.register(r'RefreshTokenView',RefreshTokenView,basename='RefreshTokenView'),
+router.register(r'ModuleViewSet',ModuleViewSet,basename='ModuleViewSet'),
+router.register(r'CreatSubmodule',CreatSubmodule,basename='CreatSubmodule'),
+router.register(r'SubmoduleLimitCreation',SubmoduleLimitCreation,basename='SubmoduleLimitCreation'),
+router.register(r'VoucherCreation',VoucherCreation,basename='VoucherCreation'),
+router.register(r'GroupAdmincreation',GroupAdmincreation,basename='GroupAdmincreation'),
+router.register(r'SubmoduleList',SubmoduleList,basename='SubmoduleList')
+router.register(r'TaxTypeViewSet',TaxTypeViewSet,basename='TaxTypeViewSet')
+router.register(r"TaxCategory",TaxCategory,basename='TaxCategory')
 
+
+ 
 urlpatterns = [
-    
+   
     path('',include(router.urls)),
+    # path('ModuleViewSet/<int:pk>/partial_update/', ModuleViewSet.as_view({'patch': 'partial_update'}), name='module-partial-update'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('swagger.json/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

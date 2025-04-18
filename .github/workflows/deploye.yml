@@ -1,0 +1,92 @@
+name: Deploy on Main Branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Local Windows Server
+    runs-on: self-hosted
+
+    env:
+      DEPLOY_DIR: D:\GitrepoDevServer\360SolveHRMS
+      VENV_DIR: D:\GitrepoDevServer\360SolveHRMS\venv
+      REQUIREMENTS_FILE: D:\GitrepoDevServer\360SolveHRMS\requirements.txt
+      SERVICE_NAME: 360SolveHRMSService
+      NSSM_PATH: D:\GitrepoDevServer\nssm\win64\nssm.exe
+      HOST_PORT: 192.168.0.160:8020
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Sync project to deployment directory
+        shell: powershell
+        run: |
+          Write-Host "Step 1: Syncing project files with robocopy..."
+          robocopy "${{ github.workspace }}" "${{ env.DEPLOY_DIR }}" /MIR
+          $code = $LASTEXITCODE
+          if ($code -ge 8) {
+            throw "Robocopy failed with exit code $code"
+          } else {
+            Write-Host "Robocopy completed with exit code $code (success or minor issues)"
+            exit 0
+          }
+
+      - name: Setup Python virtual environment and install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Step 2: Finding Python..."
+          $PythonPath = (Get-Command python | Select-Object -ExpandProperty Source)
+          if (-not (Test-Path $PythonPath)) {
+            throw "Python not found in PATH."
+          }
+
+          Write-Host "Step 3: Checking/Creating Virtual Environment..."
+          $VenvScripts = Join-Path "${{ env.VENV_DIR }}" "Scripts"
+          $ActivatePath = Join-Path $VenvScripts "Activate.ps1"
+          if (-not (Test-Path $ActivatePath)) {
+            Write-Host "Virtual environment not found. Creating..."
+            & $PythonPath -m venv "${{ env.VENV_DIR }}"
+          } else {
+            Write-Host "Virtual environment already exists."
+          }
+
+          Write-Host "Step 4: Activating virtual environment and installing requirements..."
+          & "${{ env.VENV_DIR }}\Scripts\python.exe" -m pip install --upgrade pip
+          & "${{ env.VENV_DIR }}\Scripts\pip.exe" install -r "${{ env.REQUIREMENTS_FILE }}"
+
+      - name: Run Django migrations
+        shell: powershell
+        run: |
+          $PythonExe = Join-Path "${{ env.VENV_DIR }}" "Scripts\python.exe"
+          $ManagePy = Join-Path "${{ env.DEPLOY_DIR }}" "manage.py"
+
+          Write-Host "Step 5: Applying Django Migrations..."
+          & $PythonExe $ManagePy makemigrations
+          & $PythonExe $ManagePy migrate
+
+      - name: Ensure Django service exists and restart
+        shell: powershell
+        run: |
+          $ServiceName = "${{ env.SERVICE_NAME }}"
+          $PythonExe = Join-Path "${{ env.VENV_DIR }}" "Scripts\python.exe"
+          $ManagePy = Join-Path "${{ env.DEPLOY_DIR }}" "manage.py"
+          $AppDir = "${{ env.DEPLOY_DIR }}"
+          $Nssm = "${{ env.NSSM_PATH }}"
+
+          Write-Host "Step 6: Managing NSSM service..."
+          $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+
+          if (-not $service) {
+              Write-Host "Service not found. Creating..."
+              & $Nssm install $ServiceName $PythonExe $ManagePy runserver ${{ env.HOST_PORT }}
+              & $Nssm set $ServiceName AppDirectory $AppDir
+              & $Nssm start $ServiceName
+          } else {
+              Write-Host "Service exists. Restarting..."
+              net stop $ServiceName
+              net start $ServiceName
+          }
