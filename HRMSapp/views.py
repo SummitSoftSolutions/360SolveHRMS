@@ -15,6 +15,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password,check_password
 from rest_framework_simplejwt.tokens import UntypedToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 User = get_user_model()
 
@@ -227,7 +228,7 @@ class ModuleViewSet(viewsets.ViewSet):
         permission_classes=[AllowAny]
         parser_classes=[MultiPartParser,FormParser]
         try:
-            data = MasterModule.objects.all()
+            data = MasterModule.objects.filter(IsDeleted=0)
             print("data:---",data)
             
             if not data.exists():
@@ -242,6 +243,8 @@ class ModuleViewSet(viewsets.ViewSet):
             request_body=MasterModuleSerializer 
         )
     def partial_update(self, request, pk=None):
+        authentication_classes = [JWTAuthentication] 
+        permission_classes = [IsAuthenticated]
         try:
             update_data = MasterModule.objects.get(pk=pk)
         except MasterModule.DoesNotExist:
@@ -253,15 +256,25 @@ class ModuleViewSet(viewsets.ViewSet):
             return Response({"message": "Module Updated Successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
         return Response({"error": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
-    @swagger_auto_schema(
-         openapi.Parameter('Id', openapi.IN_FORM, description="Id", type=openapi.TYPE_INTEGER, required=False)
+
+    def retrieve(self, request, pk=None):
+        try:
+            user = MasterModule.objects.get(id=pk,IsDeleted=0)
+            serializer = MasterModuleSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message":"No recordss found"},status=status.HTTP_404_NOT_FOUND)
+    
+    def destroy(self,request,pk=None):
+        try:
+            query_set = MasterModule.objects.get(id=pk,IsDeleted=0)
+            print("module:",query_set)
+            query_set.IsDeleted = 1
+            query_set.save()
+            return Response({'message':"module deleted sucessfully.."},status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error':"Something went wrong"},status=status.HTTP_400_BAD_REQUEST)
         
-    )
-    def retrive(self,request,id):
-        queryset = MasterModule.objects.all()
-        user = get_object_or_404(queryset,id=id)
-        serializer = MasterModuleSerializer(user)
-        return Response(serializer.data)
         
         
         
@@ -329,6 +342,52 @@ class SubmoduleLimitCreation(viewsets.ViewSet):
         sub_data.isdeleted = 1
         sub_data.save()
         return Response({"status":"Successfully deleted"})
+    
+    
+    
+class TaxCategory(viewsets.ViewSet):
+    @swagger_auto_schema(
+        request_body=TaxCategorySerializer
+    )
+    def create(self,request):
+        try:
+            name= request.data.get("name")
+            
+            data= {
+                "name":name,
+            }
+            serializer = TaxCategorySerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message":"created sucessfully..."},status=status.HTTP_201_CREATED)
+            return Response({"message":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
+        
+        
+
+class TaxTypeViewSet(viewsets.ViewSet):
+    @ swagger_auto_schema(
+        request_body=TaxTypeSerializer
+    )
+    def create(self,request):
+        try:
+            taxName = request.data.get('taxName')
+            Category=request.data.get('Category')
+            
+            data = {
+                "taxName":taxName,
+                "Category":Category,
+            }
+            
+            serializer = TaxTypeSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message":"created sucessfully.."},status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"message":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                
         
             
 

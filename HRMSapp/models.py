@@ -33,7 +33,10 @@ class StateTbl(models.Model):
 class DistrictTbl(models.Model):
     name = models.CharField(db_column='Name', max_length=225)  # Field name made lowercase.
     state = models.ForeignKey('StateTbl', models.DO_NOTHING, db_column='StateId')  # Field name made lowercase.
-    districtcode = models.CharField(db_column='DistrictCode', max_length=225, blank=True, null=True)  # Field name made lowercase.
+    district_status=models.CharField(max_length=100,null=True,default="")
+    districtcode = models.CharField(db_column='DistrictCode', max_length=225, blank=True, null=True)
+    short_name = models.CharField(max_length=100,default="")
+    isdelete = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'DistrictTbl'
@@ -114,15 +117,12 @@ class User(AbstractBaseUser):
 
 
 class MasterModule(models.Model):
-    STATUS_CHOICES = [
-        (1, 'Active'),
-        (0, 'Inactive'),
-    ]
+
     Name = models.CharField(max_length=150,default=True)
     Logo=models.FileField(upload_to='media/logs/',default=True)
     Description=models.CharField(max_length=150,null=True)
     IsDeleted=models.IntegerField(default=0)
-    Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
+    Status=models.BooleanField(default=True)
     
     class Meta:
         db_table = "MasterModule"
@@ -132,14 +132,10 @@ class MasterModule(models.Model):
     
     
 class SubModule(models.Model):
-    STATUS_CHOICES = [
-        (1, 'Active'),
-        (0, 'Inactive'),
-    ]
     Name = models.CharField(max_length=150,default=True)
     Module=models.ForeignKey(MasterModule,on_delete=models.CASCADE)
     IsDeleted=models.IntegerField(default=0)
-    Status=models.IntegerField(choices=STATUS_CHOICES,default=1)
+    Status=models.BooleanField(default=True)
      
     class Meta:
          db_table = "SubModule"
@@ -254,3 +250,37 @@ class VoucherTypeTbl(models.Model):
         db_table = "VoucherTypeTbl"
         
         
+
+
+class Subscription(models.Model):
+    group = models.ForeignKey(Groupadmin,on_delete=models.CASCADE)
+    company = models.ForeignKey(CompanyTbl,on_delete=models.CASCADE)
+    branch = models.ForeignKey(BranchTbl,on_delete=models.CASCADE)
+    Module = models.ForeignKey(MasterModule,on_delete=models.CASCADE,null=True)
+    Sub_Module=models.ForeignKey(SubModule,on_delete=models.CASCADE,null=True)
+    is_active = models.BooleanField(default=True)
+    is_deleted=models.BooleanField(default=False)
+    expirydate=models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "Subscription"
+ 
+class TaxCategory(models.Model):
+    name = models.CharField(max_length=150,null=True)
+    is_deleted=models.IntegerField(default=0) 
+    
+    class Meta:
+        db_table="TaxCategory" 
+          
+class TaxType(models.Model):
+    taxName = models.CharField(max_length=150,null=True)
+    is_deleted =models.BooleanField(default=0)
+    Category=models.ForeignKey(TaxCategory,on_delete=models.CASCADE,null=True)
+    class Meta:
+        db_table = "TaxType"
+    
+    def __str__(self):
+        return self.taxName
+    
+        
+    

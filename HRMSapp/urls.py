@@ -26,6 +26,8 @@ router.register(r'SubmoduleLimitCreation',SubmoduleLimitCreation,basename='Submo
 router.register(r'VoucherCreation',VoucherCreation,basename='VoucherCreation'),
 router.register(r'GroupAdmincreation',GroupAdmincreation,basename='GroupAdmincreation'),
 router.register(r'SubmoduleList',SubmoduleList,basename='SubmoduleList')
+router.register(r'TaxTypeViewSet',TaxTypeViewSet,basename='TaxTypeViewSet')
+router.register(r"TaxCategory",TaxCategory,basename='TaxCategory')
 
 
  

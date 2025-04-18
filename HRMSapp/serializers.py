@@ -43,3 +43,13 @@ class GroupadminSerializer(serializers.ModelSerializer):
     class Meta:
         model=Groupadmin
         fields= "__all__"
+    
+class TaxTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxType
+        fields = "__all__"
+    
+class TaxCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxCategory
+        fields="__all__"

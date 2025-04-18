@@ -2,7 +2,10 @@ asgiref==3.8.1
 attrs==25.3.0
 certifi==2025.1.31
 charset-normalizer==3.4.1
+<<<<<<< HEAD
 colorama==0.4.6
+=======
+>>>>>>> 5e8b24b2306d86d7a3a70fafb30609f0cdf1689e
 confluent-kafka==2.8.2
 Django==5.1.7
 django-cors-headers==4.7.0
@@ -13,6 +16,7 @@ drf-yasg==1.21.10
 gunicorn==23.0.0
 idna==3.10
 inflection==0.5.1
+<<<<<<< HEAD
 iniconfig==2.0.0
 Jinja2==3.1.6
 jsonschema==4.23.0
@@ -27,6 +31,13 @@ psycopg2-binary==2.9.10
 PyJWT==2.9.0
 pytest==8.3.5
 pytest-django==4.10.0
+=======
+jsonschema==4.23.0
+jsonschema-specifications==2024.10.1
+packaging==24.2
+psycopg2-binary==2.9.10
+PyJWT==2.9.0
+>>>>>>> 5e8b24b2306d86d7a3a70fafb30609f0cdf1689e
 python-dotenv==1.0.1
 pytz==2025.1
 PyYAML==6.0.2
@@ -34,7 +45,10 @@ referencing==0.36.2
 requests==2.32.3
 rpds-py==0.23.1
 sqlparse==0.5.3
+<<<<<<< HEAD
 swagger-ui-py==23.9.23
+=======
+>>>>>>> 5e8b24b2306d86d7a3a70fafb30609f0cdf1689e
 typing_extensions==4.12.2
 tzdata==2025.1
 uritemplate==4.1.1
