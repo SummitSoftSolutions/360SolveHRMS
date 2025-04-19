@@ -69,7 +69,7 @@ jobs:
           $ManagePy = Join-Path "${{ steps.setenv.outputs.deploy_dir }}" "manage.py"
 
           Write-Host "Step 5: Applying Django Migrations..."
-          & $PythonExe $ManagePy makemigrations --merge
+          & $PythonExe $ManagePy makemigrations
           & $PythonExe $ManagePy migrate
 
       - name: Ensure Django service exists and restart
