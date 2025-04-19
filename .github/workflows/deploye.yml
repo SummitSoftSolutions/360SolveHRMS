@@ -10,23 +10,28 @@ jobs:
     name: Deploy to Local Windows Server
     runs-on: self-hosted
 
-    env:
-      DEPLOY_DIR: D:\GitrepoDevServer\360SolveHRMS
-      VENV_DIR: D:\GitrepoDevServer\360SolveHRMS\venv
-      REQUIREMENTS_FILE: D:\GitrepoDevServer\360SolveHRMS\requirements.txt
-      SERVICE_NAME: 360SolveHRMSService
-      NSSM_PATH: D:\GitrepoDevServer\nssm\win64\nssm.exe
-      HOST_PORT: 192.168.0.160:8020
+    defaults:
+      run:
+        shell: powershell
 
     steps:
+      - name: Set dynamic environment variables
+        id: setenv
+        run: |
+          $repoName = "${{ github.repository }}" -split '/' | Select-Object -Last 1
+          echo "repo_name=$repoName" >> $env:GITHUB_OUTPUT
+          echo "deploy_dir=D:\GitProjectsDeployment\Projects\$repoName" >> $env:GITHUB_OUTPUT
+          echo "venv_dir=D:\GitProjectsDeployment\Projects\$repoName\venv" >> $env:GITHUB_OUTPUT
+          echo "requirements_file=D:\GitProjectsDeployment\Projects\$repoName\requirements.txt" >> $env:GITHUB_OUTPUT
+          echo "service_name=Service-${repoName}" >> $env:GITHUB_OUTPUT
+
       - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Sync project to deployment directory
-        shell: powershell
         run: |
           Write-Host "Step 1: Syncing project files with robocopy..."
-          robocopy "${{ github.workspace }}" "${{ env.DEPLOY_DIR }}" /MIR
+          robocopy "${{ github.workspace }}" "${{ steps.setenv.outputs.deploy_dir }}" /MIR
           $code = $LASTEXITCODE
           if ($code -ge 8) {
             throw "Robocopy failed with exit code $code"
@@ -36,7 +41,6 @@ jobs:
           }
 
       - name: Setup Python virtual environment and install dependencies
-        shell: powershell
         run: |
           Write-Host "Step 2: Finding Python..."
           $PythonPath = (Get-Command python | Select-Object -ExpandProperty Source)
@@ -45,44 +49,43 @@ jobs:
           }
 
           Write-Host "Step 3: Checking/Creating Virtual Environment..."
-          $VenvScripts = Join-Path "${{ env.VENV_DIR }}" "Scripts"
+          $VenvDir = "${{ steps.setenv.outputs.venv_dir }}"
+          $VenvScripts = Join-Path $VenvDir "Scripts"
           $ActivatePath = Join-Path $VenvScripts "Activate.ps1"
           if (-not (Test-Path $ActivatePath)) {
             Write-Host "Virtual environment not found. Creating..."
-            & $PythonPath -m venv "${{ env.VENV_DIR }}"
+            & $PythonPath -m venv $VenvDir
           } else {
             Write-Host "Virtual environment already exists."
           }
 
           Write-Host "Step 4: Activating virtual environment and installing requirements..."
-          & "${{ env.VENV_DIR }}\Scripts\python.exe" -m pip install --upgrade pip
-          & "${{ env.VENV_DIR }}\Scripts\pip.exe" install -r "${{ env.REQUIREMENTS_FILE }}"
+          & "$VenvDir\Scripts\python.exe" -m pip install --upgrade pip
+          & "$VenvDir\Scripts\pip.exe" install -r "${{ steps.setenv.outputs.requirements_file }}"
 
-      # - name: Run Django migrations
-      #   shell: powershell
-      #   run: |
-      #     $PythonExe = Join-Path "${{ env.VENV_DIR }}" "Scripts\python.exe"
-      #     $ManagePy = Join-Path "${{ env.DEPLOY_DIR }}" "manage.py"
+      - name: Run Django migrations
+        run: |
+          $PythonExe = Join-Path "${{ steps.setenv.outputs.venv_dir }}" "Scripts\python.exe"
+          $ManagePy = Join-Path "${{ steps.setenv.outputs.deploy_dir }}" "manage.py"
 
-      #     Write-Host "Step 5: Applying Django Migrations..."
-      #     & $PythonExe $ManagePy makemigrations
-      #     & $PythonExe $ManagePy migrate
+          Write-Host "Step 5: Applying Django Migrations..."
+          & $PythonExe $ManagePy makemigrations --merge
+          & $PythonExe $ManagePy migrate
 
       - name: Ensure Django service exists and restart
-        shell: powershell
         run: |
-          $ServiceName = "${{ env.SERVICE_NAME }}"
-          $PythonExe = Join-Path "${{ env.VENV_DIR }}" "Scripts\python.exe"
-          $ManagePy = Join-Path "${{ env.DEPLOY_DIR }}" "manage.py"
-          $AppDir = "${{ env.DEPLOY_DIR }}"
-          $Nssm = "${{ env.NSSM_PATH }}"
+          $ServiceName = "${{ steps.setenv.outputs.service_name }}"
+          $PythonExe = Join-Path "${{ steps.setenv.outputs.venv_dir }}" "Scripts\python.exe"
+          $ManagePy = Join-Path "${{ steps.setenv.outputs.deploy_dir }}" "manage.py"
+          $AppDir = "${{ steps.setenv.outputs.deploy_dir }}"
+          $Nssm = "D:\GitrepoDevServer\nssm\win64\nssm.exe"
 
           Write-Host "Step 6: Managing NSSM service..."
           $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 
           if (-not $service) {
               Write-Host "Service not found. Creating..."
-              & $Nssm install $ServiceName $PythonExe $ManagePy runserver ${{ env.HOST_PORT }}
+              & $Nssm install $ServiceName $PythonExe $ManagePy runserver 0.0.0.0:7002
               & $Nssm set $ServiceName AppDirectory $AppDir
               & $Nssm start $ServiceName
           } else {
@@ -90,3 +93,6 @@ jobs:
               net stop $ServiceName
               net start $ServiceName
           }
+
+    env:
+      HOST_PORT: 192.168.0.160:7003
