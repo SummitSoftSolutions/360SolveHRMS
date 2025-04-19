@@ -78,7 +78,7 @@ jobs:
           $PythonExe = Join-Path "${{ steps.setenv.outputs.venv_dir }}" "Scripts\python.exe"
           $ManagePy = Join-Path "${{ steps.setenv.outputs.deploy_dir }}" "manage.py"
           $AppDir = "${{ steps.setenv.outputs.deploy_dir }}"
-          $Nssm = "D:\GitrepoDevServer\nssm\win64\nssm.exe"
+          $Nssm = "D:\GitProjectsDeployment\nssm\win64\nssm.exe"
           $HostPort = "${{ env.HOST_PORT }}"
 
           Write-Host "Step 6: Managing NSSM service..."
