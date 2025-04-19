@@ -1,5 +1,48 @@
+
+# Default ignored files
+/shelf/
+/workspace.xml
+
+# Created by https://www.toptal.com/developers/gitignore/api/python
+# Edit at https://www.toptal.com/developers/gitignore?templates=python
+
+### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
+**/__pycache__/
+Erp_Management/GeneralApp/__pycache__
+Erp_Management/GeneralApp/migrations
+
+
+
+Erp_Management/AdminApp/migrations
+Erp_Management/AdminApp/__pycache__
+
+ErpManagementBackEnd/Erp_Management/AccountApp/migrations/
+ErpManagementBackEnd/Erp_Management/AccountApp/__pycache__/
+
+
+Erp_Management/CrmApp/migrations
+Erp_Management/CrmApp/__pycache__
+
+
+Erp_Management/HrApp/migrations
+Erp_Management/HrApp/__pycache__
+
+Erp_Management/OmsApp/migrations
+Erp_Management/OmsApp/__pycache__
+
+Erp_Management/Project_Task_App/migrations
+Erp_Management/Project_Task_App/__pycache__
+
+Erp_Management/ReportApp/migrations
+Erp_Management/ReportApp/__pycache__
+
+
+Erp_Management/SmApp/migrations
+Erp_Management/SmApp/__pycache__
+
+.idea/
 *.py[cod]
 *$py.class
 
@@ -12,6 +55,11 @@ build/
 develop-eggs/
 dist/
 downloads/
+media/
+partyfile/
+product_images/
+media/partyfile/
+media/product_images/
 eggs/
 .eggs/
 lib/
@@ -94,12 +142,6 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
@@ -112,10 +154,8 @@ ipython_config.py
 #pdm.lock
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
-#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
+#   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
-.pdm-python
-.pdm-build/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -128,7 +168,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-# .env
+.env
 .venv
 env/
 venv/
@@ -167,5 +207,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# PyPI configuration file
-.pypirc
+### Python Patch ###
+# Poetry local configuration file - https://python-poetry.org/docs/configuration/#local-configuration
+poetry.toml
+
+# ruff
+.ruff_cache/
+
+# LSP config files
+pyrightconfig.json
+
+# End of https://www.toptal.com/developers/gitignore/api/python
