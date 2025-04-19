@@ -79,13 +79,14 @@ jobs:
           $ManagePy = Join-Path "${{ steps.setenv.outputs.deploy_dir }}" "manage.py"
           $AppDir = "${{ steps.setenv.outputs.deploy_dir }}"
           $Nssm = "D:\GitrepoDevServer\nssm\win64\nssm.exe"
+          $HostPort = "${{ env.HOST_PORT }}"
 
           Write-Host "Step 6: Managing NSSM service..."
           $service = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 
           if (-not $service) {
               Write-Host "Service not found. Creating..."
-              & $Nssm install $ServiceName $PythonExe $ManagePy runserver 0.0.0.0:7002
+              & $Nssm install $ServiceName $PythonExe $ManagePy runserver $HostPort
               & $Nssm set $ServiceName AppDirectory $AppDir
               & $Nssm start $ServiceName
           } else {
