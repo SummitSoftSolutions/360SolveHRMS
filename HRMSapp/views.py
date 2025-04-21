@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password,check_password
 from rest_framework_simplejwt.tokens import UntypedToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from .models import TaxCategory
 
 User = get_user_model()
 
@@ -296,7 +297,6 @@ class RefreshTokenView(viewsets.ViewSet):
     
     
         
-        
 class SubmoduleLimitCreation(viewsets.ViewSet):
     permission_classes = [AllowAny]
     def create(self,request):
@@ -345,7 +345,7 @@ class SubmoduleLimitCreation(viewsets.ViewSet):
     
     
     
-class TaxCategory(viewsets.ViewSet):
+class CategoryTax(viewsets.ViewSet):
     @swagger_auto_schema(
         request_body=TaxCategorySerializer
     )
@@ -363,7 +363,78 @@ class TaxCategory(viewsets.ViewSet):
             return Response({"message":serializer.errors},status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @swagger_auto_schema(
+        operation_description="Get a list of items",
+        responses={200:openapi.Response(description='Succesful  response')}
+    )
+    def list(self,request):
+        try:
+            tax_categories = TaxCategory.objects.all()
+
+            if not tax_categories.exists():
+                return Response({"message": "No records found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = TaxCategorySerializer(tax_categories, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    
+    def retrieve(self,request,pk=None):
+        if pk is None:
+            return Response({"error":"Id is not error"})
+        try:
+            data = TaxCategory.objects.filter(pk=pk,is_deleted=0)
+            serializer = TaxCategorySerializer(data,many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        except TaxCategory.DoesNotExist:
+            return Response({"error":"Module Not Found"},status=status.HTTP_400_BAD_REQUEST)
+   
+    @swagger_auto_schema(
+            request_body=TaxCategorySerializer
+        )
+    def update(self,request,pk):
+        if pk is None:
+            return Response({"error":"Id is not passed"})
+        try:
             
+            category = TaxCategory.objects.get(pk=pk)
+        except TaxCategory.DoesNotExist:
+            return Response({'error':'Not Found'},status=status.HTTP_404_NOT_FOUND)
+        serializer =  TaxCategorySerializer(category,data= request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    @swagger_auto_schema(
+            request_body=TaxCategorySerializer
+        )
+   
+    def partial_update(self,request,pk):
+        if pk is None:
+            return Response({"error":"Id is not passed"})
+        try:
+            category= TaxCategory.objects.get(pk=pk)
+        except TaxCategory.DoesNotExist:
+            return Response({"error":"Category Tax Not Found"},status=status.HTTP_404_NOT_FOUND)
+        serializer = TaxCategorySerializer(category,data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    def destroy(self,request,pk):
+        if pk is None:
+            return Response({"error":"Id is not passed"})
+        try:
+            category = TaxCategory.objects.get(pk=pk)
+            category.delete()
+            return Response({"message":'Tax Category is deleted sucessfully'},status=status.HTTP_200_OK)
+        except TaxCategory.DoesNotExist:
+            return Response({"error":"Category Tax found"},status=status.HTTP_400_BAD_REQUEST)   
         
         
 

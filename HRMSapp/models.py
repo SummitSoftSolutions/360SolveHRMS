@@ -264,6 +264,8 @@ class Subscription(models.Model):
     
     class Meta:
         db_table = "Subscription"
+        
+        
  
 class TaxCategory(models.Model):
     name = models.CharField(max_length=150,null=True)
@@ -271,6 +273,8 @@ class TaxCategory(models.Model):
     
     class Meta:
         db_table="TaxCategory" 
+        
+        
           
 class TaxType(models.Model):
     taxName = models.CharField(max_length=150,null=True)
